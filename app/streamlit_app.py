@@ -301,7 +301,7 @@ def run_analysis(df: pd.DataFrame):
             st.markdown("---")
 
 import reportlab
-st.write("✅ ReportLab version:", reportlab.Version)
+st.write(reportlab.Version)
 
 
 # --- Main Logic ---
