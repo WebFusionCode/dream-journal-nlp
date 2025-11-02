@@ -300,6 +300,9 @@ def run_analysis(df: pd.DataFrame):
             st.markdown(f"**AI Assistant:** {a}")
             st.markdown("---")
 
+import reportlab
+st.write("✅ ReportLab version:", reportlab.Version)
+
 
 # --- Main Logic ---
 uploaded = st.file_uploader("Upload dream journal CSV", type=["csv"])
