@@ -7,3 +7,5 @@ libfribidi0
 libcairo2
 libpango-1.0-0
 libpangocairo-1.0-0
+libfreetype6-dev
+
