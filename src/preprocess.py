@@ -3,6 +3,13 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
+import nltk
+
+# Ensure required NLTK data is available in Streamlit Cloud
+nltk.download('punkt', quiet=True)
+nltk.download('punkt_tab', quiet=True)
+nltk.download('stopwords', quiet=True)
+nltk.download('wordnet', quiet=True)
 
 # ✅ Ensure NLTK data is available (for Streamlit Cloud / servers)
 for pkg in ["stopwords", "punkt", "wordnet"]:
