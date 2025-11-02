@@ -1,35 +1,54 @@
 import os
 import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import streamlit as st
 import pandas as pd
 from io import BytesIO
 from wordcloud import WordCloud
+
+# Add parent dir for imports
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+# Existing imports
 from src.analyze import compute_sentiment, top_keywords, topic_model, ensure_datetime
 from src.emotions import analyze_emotions
 from src.reporting import build_pdf
+from src.summary import generate_summary
 
-# --------------------
+# NEW imports for advanced NLP
+from src.symbols_ext import load_symbol_lexicon, symbol_summary_for_df
+from src.semantic import get_model, build_embeddings_index, semantic_search
+from src.clustering import cluster_with_kmeans, label_clusters_by_top_terms
+
+# Visuals
+from src.visuals import (
+    plot_emotion_trends,
+    plot_dream_frequency,
+    plot_keyword_emotion_network,
+    plot_cluster_projection
+)
+
+
 # Streamlit Config
-# --------------------
 st.set_page_config(page_title="Dream Journal NLP", layout="wide")
 st.title("🌙 Dream Journal NLP")
 st.caption("Upload a CSV with columns: date, text")
 
-# --------------------
-# Helper Functions
-# --------------------
+
+# --- Helper Functions ---
 def make_wordcloud(freq: dict):
+    """Generate and display a word cloud."""
     wc = WordCloud(width=1200, height=600, background_color="white", colormap="plasma").generate_from_frequencies(freq)
     buf = BytesIO()
     wc.to_image().save(buf, format="PNG")
-    st.image(buf.getvalue(), use_column_width=True)
+    st.image(buf.getvalue(), use_container_width=True)  # ✅ fixed deprecated arg
 
+
+# --- Main Analysis Pipeline ---
 def run_analysis(df: pd.DataFrame):
-    """Run the full analysis pipeline on a dream dataset."""
     df["date"] = ensure_datetime(df["date"])
     df = df.dropna(subset=["date"]).sort_values("date").reset_index(drop=True)
-        # --- Search / Filter Dreams ---
+
+    # --- Search / Filter Dreams ---
     st.subheader("🔎 Search Dreams")
     search_term = st.text_input("Enter a keyword to filter dreams (leave empty to see all):").strip()
 
@@ -41,18 +60,17 @@ def run_analysis(df: pd.DataFrame):
         else:
             st.info(f"Showing {len(filtered)} dreams containing '{search_term}'.")
             df = filtered
-    
-        # --- Date Range Filter ---
+
+    # --- Date Range Filter ---
     st.subheader("📅 Date Range Filter")
     min_date, max_date = df["date"].min().date(), df["date"].max().date()
     start_date, end_date = st.date_input(
         "Select date range:",
         value=(min_date, max_date),
         min_value=min_date,
-        max_value=max_date
+        max_value=max_date,
     )
 
-    # Ensure valid range
     if start_date > end_date:
         st.error("Start date must be before end date.")
         return
@@ -61,8 +79,6 @@ def run_analysis(df: pd.DataFrame):
     if df.empty:
         st.warning(f"No dreams found between {start_date} and {end_date}.")
         return
-
-
 
     # --- Summary Metrics ---
     st.subheader("📊 Dream Journal Summary")
@@ -85,8 +101,8 @@ def run_analysis(df: pd.DataFrame):
     daily = df_sent.groupby("date", as_index=False)["sentiment"].mean()
 
     emo_df = analyze_emotions(df)
-    avg = emo_df.drop(columns=["date","text"]).mean().sort_values(ascending=False).reset_index()
-    avg.columns = ["emotion","average_score"]
+    avg = emo_df.drop(columns=["date", "text"]).mean().sort_values(ascending=False).reset_index()
+    avg.columns = ["emotion", "average_score"]
 
     col1, col2 = st.columns(2)
     with col1:
@@ -119,10 +135,140 @@ def run_analysis(df: pd.DataFrame):
 
     st.divider()
 
-    # --- PDF Export ---
+    # --- 🔮 Dream Symbol Analysis ---
+    st.subheader("🔮 Dream Symbol Analysis")
+    try:
+        lexicon = load_symbol_lexicon()
+        per_entry_counts, symbol_totals = symbol_summary_for_df(df, lexicon)
+    except Exception as e:
+        st.error(f"Error loading dream symbols: {e}")
+        symbol_totals = pd.DataFrame()
+
+    if not symbol_totals.empty:
+        st.dataframe(symbol_totals, use_container_width=True)
+    else:
+        st.info("No dream symbols detected in your entries.")
+
+    st.divider()
+
+    # --- 🧠 Semantic Search ---
+    st.subheader("🧠 Semantic Search (Meaning-based)")
+    model = get_model()
+
+    if "embeddings" not in st.session_state or st.session_state.get("embeddings_len") != len(df):
+        with st.spinner("Building semantic embeddings..."):
+            embeddings = build_embeddings_index(df, model=model)
+            st.session_state["embeddings"] = embeddings
+            st.session_state["embeddings_len"] = len(df)
+    else:
+        embeddings = st.session_state["embeddings"]
+
+    query = st.text_input("Enter a phrase to search semantically (e.g., 'fear', 'ocean', 'falling'):")
+    if query:
+        results = semantic_search(query, df, embeddings, top_k=8, model=model)
+        st.write(f"Top semantic matches for **'{query}'**:")
+        st.dataframe(results[["date", "text", "score"]], use_container_width=True)
+
+    st.divider()
+
+    # --- 🌌 Thematic Clustering ---
+    st.subheader("🌌 Thematic Clustering of Dreams")
+    n_clusters = st.slider("Number of clusters (KMeans)", 2, 12, 6)
+    labels, km = cluster_with_kmeans(embeddings, n_clusters=n_clusters)
+    cluster_summary = label_clusters_by_top_terms(df, labels)
+
+    if not cluster_summary.empty:
+        st.dataframe(cluster_summary[["cluster", "size"]], use_container_width=True)
+        selected_cluster = st.selectbox("Select cluster to view example dreams:",
+                                        options=cluster_summary["cluster"].tolist())
+        if selected_cluster is not None:
+            examples = cluster_summary.loc[cluster_summary["cluster"] == selected_cluster, "samples"].explode().tolist()
+            st.write("**Sample dreams in this cluster:**")
+            for e in examples[:8]:
+                st.markdown(f"- {e}")
+    else:
+        st.info("Not enough data to form meaningful clusters.")
+
+    st.divider()
+
+    # --- 📊 Interactive Visual Analytics ---
+    st.subheader("📊 Interactive Visual Analytics")
+    tabs = st.tabs(["Emotion Trends", "Dream Frequency", "Keyword–Emotion Network", "Cluster Map"])
+
+    with tabs[0]:
+        st.plotly_chart(plot_emotion_trends(emo_df), use_container_width=True)
+    with tabs[1]:
+        buf = plot_dream_frequency(df)
+        st.image(buf, use_container_width=True)
+    with tabs[2]:
+        html_path = plot_keyword_emotion_network(kw_df, emo_df)
+        st.components.v1.html(open(html_path).read(), height=520, scrolling=True)
+    with tabs[3]:
+        st.plotly_chart(plot_cluster_projection(df, embeddings, labels), use_container_width=True)
+
+    st.divider()
+
+    # --- 🔮 Emotional Forecasting ---
+    from src.forecast import forecast_emotions
+
+    st.subheader("🔮 Emotional Forecasting")
+    try:
+        buf, summary = forecast_emotions(daily)
+        st.image(buf, use_container_width=True)
+        st.success(summary)
+    except Exception as e:
+        st.error(f"Forecasting failed: {e}")
+
+    st.divider()
+
+    # --- 🎯 Emotional Triggers ---
+    from src.triggers import detect_emotion_triggers
+
+    st.subheader("🎯 Emotional Triggers in Dreams")
+
+    try:
+        triggers = detect_emotion_triggers(df_sent, emo_df)
+        st.dataframe(triggers, use_container_width=True)
+        st.markdown("**Interpretation:** Words with higher positive coefficients "
+                    "are linked to happier dreams, while negative ones indicate stressors or anxieties.")
+    except Exception as e:
+        st.error(f"Trigger detection failed: {e}")
+
+    st.divider()
+
+    # --- 🧘 Automated Insight Generation ---
+    from src.insights import generate_insights
+
+    st.subheader("🧘 Automated Insights & Recommendations")
+
+    try:
+        insights = generate_insights(
+            df=df_sent,
+            daily=daily,
+            avg_emotions=avg,
+            keywords=kw_df,
+            topics=topics,
+            symbol_summary=symbol_totals,
+            cluster_summary=cluster_summary
+        )
+        for ins in insights:
+            st.markdown(f"- {ins}")
+    except Exception as e:
+        st.error(f"⚠️ Insight generation failed: {e}")
+        st.write("DEBUG: Symbol Summary Columns ->", list(symbol_totals.columns))
+        st.dataframe(symbol_totals.head())
+
+
+
+    # --- 📝 Narrative Summary ---
+    st.subheader("📝 Narrative Summary")
+    summary_text = generate_summary(daily, avg, kw_df, topics)
+    st.markdown(summary_text)
+
+    # --- 📄 PDF Export ---
     st.subheader("📄 Export Report")
     if st.button("Generate PDF Report"):
-        pdf_buffer = build_pdf(df_sent, daily, avg, kw_df, topics, pd.DataFrame())
+        pdf_buffer = build_pdf(df_sent, daily, avg, kw_df, topics, symbol_totals, cluster_summary)
         st.download_button(
             label="⬇️ Download PDF",
             data=pdf_buffer,
@@ -130,18 +276,40 @@ def run_analysis(df: pd.DataFrame):
             mime="application/pdf",
         )
 
-# --------------------
-# Main Logic
-# --------------------
+    # --- 💬 Dream AI Assistant ---
+    import src.assistant as assistant
+    st.markdown("---")
+    st.header("💬 Dream AI Assistant")
+    st.caption("Ask the AI to interpret your dreams, find patterns, or summarize insights.")
+    user_input = st.text_area("Ask something about your dreams:",
+                              placeholder="e.g., What does it mean that I keep dreaming about water?")
+    context_depth = st.slider("Number of recent dreams to include in analysis:", 3, 20, 5)
+
+    if "assistant_history" not in st.session_state:
+        st.session_state["assistant_history"] = []
+
+    if st.button("Ask Assistant") and user_input:
+        with st.spinner("The AI is analyzing your dreams..."):
+            response = assistant.generate_ai_response(user_input, df.tail(context_depth))
+            st.session_state["assistant_history"].append((user_input, response))
+
+    if st.session_state["assistant_history"]:
+        st.subheader("Conversation History")
+        for q, a in st.session_state["assistant_history"]:
+            st.markdown(f"**You:** {q}")
+            st.markdown(f"**AI Assistant:** {a}")
+            st.markdown("---")
+
+
+# --- Main Logic ---
 uploaded = st.file_uploader("Upload dream journal CSV", type=["csv"])
 
 if uploaded:
     df = pd.read_csv(uploaded)
-    if not {"date","text"}.issubset(df.columns):
+    if not {"date", "text"}.issubset(df.columns):
         st.error("CSV must contain columns: date, text")
         st.stop()
     run_analysis(df)
-
 else:
     sample_path = os.path.join("data", "sample_dreams.csv")
     if os.path.exists(sample_path):

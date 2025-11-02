@@ -1,357 +1,44 @@
+# config/symbols.yaml
+# Symbol groups -> list of trigger words
+# and a human-friendly interpretation used in summaries & reports.
+
 groups:
-  # --- CORE ELEMENTS ---
   water:
-    - water
-    - ocean
-    - sea
-    - lake
-    - river
-    - waterfall
-    - underwater
+    words: [water, ocean, sea, lake, river, swim, swimming, drowning, splash]
+    meaning: "Emotions, unconscious feelings, depth of emotion, overwhelm"
+
+  flying:
+    words: [fly, flying, flight, wings, sky]
+    meaning: "Freedom, aspiration, desire for control, transcendence"
+
+  falling:
+    words: [fall, falling, dropped, tumble]
+    meaning: "Anxiety, loss of control, insecurity"
+
+  snakes:
+    words: [snake, snakes]
+    meaning: "Hidden fears, transformation, primal anxiety"
+
+  teeth:
+    words: [tooth, teeth, chewing, losing teeth]
+    meaning: "Insecurity, worry about appearance or speech"
+
+  school_exam:
+    words: [exam, test, classroom, teacher, late, homework]
+    meaning: "Performance anxiety, evaluation stress"
+
+  animals:
+    words: [dog, cat, fox, bird, animal]
+    meaning: "Instincts, relationships, different social meanings per animal"
+
+  house:
+    words: [house, home, room, door, key, window]
+    meaning: "Self / psyche, safety, boundaries, privacy"
 
   fire:
-    - fire
-    - burn
-    - smoke
-    - flame
-    - volcano
-    - lava
+    words: [fire, burning, flame]
+    meaning: "Passion, anger, destruction, change"
 
-  air_wind:
-    - air
-    - wind
-    - breeze
-    - storm
-    - hurricane
-    - tornado
-
-  earth:
-    - ground
-    - soil
-    - stone
-    - mountain
-    - cave
-    - desert
-
-  sky_space:
-    - sky
-    - star
-    - moon
-    - sun
-    - planet
-    - galaxy
-    - universe
-    - cosmos
-
-  # --- HUMAN EXPERIENCE ---
-  birth_death:
-    - birth
-    - life
-    - death
-    - soul
-    - spirit
-    - funeral
-    - grave
-    - reincarnation
-
-  dreams_symbols:
-    - dream
-    - nightmare
-    - vision
-    - prophecy
-    - omen
-    - illusion
-
-  archetypes:
-    - hero
-    - shadow
-    - trickster
-    - wise_old_man
-    - mother
-    - child
-    - warrior
-    - lover
-
-  psychology:
-    - ego
-    - id
-    - superego
-    - subconscious
-    - conscious
-    - unconscious
-    - archetype
-    - persona
-    - anxiety
-    - depression
-    - trauma
-
-  # --- SOCIETY & POWER ---
-  society:
-    - king
-    - queen
-    - soldier
-    - farmer
-    - teacher
-    - student
-    - leader
-    - follower
-    - stranger
-    - enemy
-    - crowd
-
-  politics_power:
-    - war
-    - peace
-    - revolution
-    - empire
-    - government
-    - democracy
-    - freedom
-    - justice
-    - power
-    - law
-    - prison
-    - throne
-    - crown
-
-  economy:
-    - money
-    - wealth
-    - poverty
-    - trade
-    - bank
-    - debt
-    - tax
-    - work
-    - labor
-    - boss
-
-  # --- TECHNOLOGY & FUTURE ---
-  technology:
-    - computer
-    - internet
-    - phone
-    - robot
-    - ai
-    - machine
-    - vr
-    - ar
-    - social_media
-    - algorithm
-    - data
-    - code
-
-  sci_fi_elements:
-    - spaceship
-    - alien
-    - future
-    - cyborg
-    - android
-    - black_hole
-    - wormhole
-    - time_travel
-    - parallel_universe
-
-  # --- MYTH & RELIGION ---
-  religion:
-    - god
-    - goddess
-    - angel
-    - demon
-    - devil
-    - heaven
-    - hell
-    - prayer
-    - church
-    - mosque
-    - temple
-    - faith
-    - sin
-    - soul
-    - spirit
-
-  mythology:
-    - zeus
-    - odin
-    - shiva
-    - kali
-    - hades
-    - thor
-    - loki
-    - anubis
-    - ra
-    - krishna
-
-  mythical_creatures:
-    - dragon
-    - unicorn
-    - phoenix
-    - mermaid
-    - centaur
-    - griffin
-    - hydra
-    - minotaur
-    - fairy
-    - giant
-
-  fantasy_elements:
-    - castle
-    - sword
-    - crown
-    - quest
-    - wizard
-    - witch
-    - magic
-    - potion
-    - spell
-    - prophecy
-
-  # --- ABSTRACT & CONCEPTUAL ---
-  abstract_concepts:
-    - freedom
-    - justice
-    - truth
-    - destiny
-    - fate
-    - chaos
-    - order
-    - balance
-    - infinity
-    - eternity
-    - hope
-    - despair
-    - courage
-    - fear
-    - love
-    - hate
-    - envy
-    - greed
-    - wisdom
-
-  emotions_extended:
-    - joy
-    - trust
-    - fear
-    - surprise
-    - sadness
-    - disgust
-    - anger
-    - anticipation
-    - anxiety
-    - shame
-    - guilt
-    - pride
-    - nostalgia
-
-  # --- ADVANCED DREAM SYMBOLS ---
-  dream_symbols:
-    - falling
-    - flying
-    - drowning
-    - teeth
-    - nudity
-    - being_chased
-    - being_trapped
-    - losing_something
-    - being_late
-    - mirrors
-    - shadows
-    - labyrinth
-    - stairs
-    - tunnels
-    - bridges
-
-  # --- SCIENCE & KNOWLEDGE ---
-  science:
-    - atom
-    - molecule
-    - dna
-    - gene
-    - cell
-    - evolution
-    - quantum
-    - relativity
-    - physics
-    - chemistry
-    - biology
-
-  knowledge_learning:
-    - book
-    - library
-    - knowledge
-    - wisdom
-    - learning
-    - study
-    - exam
-    - school
-    - classroom
-    - teacher
-    - student
-    - research
-    - discovery
-    - invention
-    - innovation 
-    - experiment
-    - theory
-
-  # --- COSMIC / ESOTERIC ---
-  astrology:
-    - zodiac
-    - aries
-    - taurus
-    - gemini
-    - cancer
-    - leo
-    - virgo
-    - libra
-    - scorpio
-    - sagittarius
-    - capricorn
-    - aquarius
-    - pisces
-
-  
-  astronomy:
-    - star
-    - planet
-    - galaxy
-    - black_hole
-    - nebula
-    - constellation
-    - comet
-    - asteroid
-    - telescope
-    - astronaut
-    - space_station
-    - satellite 
-    - universe
-    - cosmos
-    - multiverse
-
-
-  occult:
-    - tarot
-    - rune
-    - ritual
-    - sigil
-    - spell
-    - curse
-    - charm
-    - prophecy
-    - divination
-    - alchemy
-    - mysticism
-    - esotericism 
-    - occultism
-    - supernatural
-    - paranormal
-    - witchcraft
-    - sorcery
-    - necromancy
-    - demonology
-    - angelology
-    - thelema
-    - gnosticism
-    - kabbalah
-    - hermeticism
-    - rosicrucianism
+  sex:
+    words: [kiss, kiss(ed), sex, bed, seduce, passion, intimate, intimacy]
+    meaning: "Desire, intimacy, taboo or connection"
