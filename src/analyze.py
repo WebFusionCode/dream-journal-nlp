@@ -11,6 +11,15 @@ from .preprocess import preprocess_text, clean_text
 def ensure_datetime(s: pd.Series) -> pd.Series:
     return pd.to_datetime(s, errors="coerce")
 
+import nltk
+
+# Ensure NLTK data is downloaded in Streamlit Cloud
+nltk.download('vader_lexicon', quiet=True)
+nltk.download('stopwords', quiet=True)
+nltk.download('punkt', quiet=True)
+nltk.download('wordnet', quiet=True)
+
+
 def compute_sentiment(df: pd.DataFrame) -> pd.DataFrame:
     sia = SentimentIntensityAnalyzer()
     df = df.copy()
