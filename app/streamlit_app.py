@@ -360,3 +360,18 @@ else:
         run_analysis(df)
     else:
         st.warning("No CSV uploaded and no sample dataset found. Please upload a file.")
+
+# --- FOOTER SECTION ---
+st.markdown("---")
+st.markdown(
+    """
+    <div style='text-align: center; padding: 15px 0; font-size: 15px; color: gray;'>
+        © 2025 <b>Dreams Psychology AI</b> — All Rights Reserved.<br>
+        Developed by <b>Web Fusion</b> | 
+        <a href="mailto:webwithfusion@gmail.com" style="color: #4b9be0; text-decoration: none;">
+            webwithfusion@gmail.com
+        </a>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
