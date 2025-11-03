@@ -277,28 +277,42 @@ def run_analysis(df: pd.DataFrame):
         )
 
     # --- 💬 Dream AI Assistant ---
-    import src.assistant as assistant
-    st.markdown("---")
-    st.header("💬 Dream AI Assistant")
-    st.caption("Ask the AI to interpret your dreams, find patterns, or summarize insights.")
-    user_input = st.text_area("Ask something about your dreams:",
-                              placeholder="e.g., What does it mean that I keep dreaming about water?")
-    context_depth = st.slider("Number of recent dreams to include in analysis:", 3, 20, 5)
+   # --- 💬 Dream AI Assistant ---
+from src.ai_assistant import get_ai_response  # ✅ new improved assistant
 
-    if "assistant_history" not in st.session_state:
-        st.session_state["assistant_history"] = []
+st.markdown("---")
+st.header("💬 Dream AI Assistant")
+st.caption("Ask the AI to interpret your dreams, symbols, or emotions using GPT-4 intelligence.")
 
-    if st.button("Ask Assistant") and user_input:
-        with st.spinner("The AI is analyzing your dreams..."):
-            response = assistant.generate_ai_response(user_input, df.tail(context_depth))
-            st.session_state["assistant_history"].append((user_input, response))
+user_input = st.text_area(
+    "Ask something about your dreams:",
+    placeholder="e.g., What does it mean that I keep dreaming about water?"
+)
+context_depth = st.slider("Number of recent dreams to include in analysis:", 3, 20, 5)
 
-    if st.session_state["assistant_history"]:
-        st.subheader("Conversation History")
-        for q, a in st.session_state["assistant_history"]:
-            st.markdown(f"**You:** {q}")
-            st.markdown(f"**AI Assistant:** {a}")
-            st.markdown("---")
+# Keep chat memory
+if "assistant_history" not in st.session_state:
+    st.session_state["assistant_history"] = []
+
+if st.button("Ask Assistant") and user_input:
+    with st.spinner("The AI is analyzing your dreams..."):
+        # 🧠 Get context from the last few dream entries
+        context = "\n\n".join(df.tail(context_depth)["text"].tolist())
+
+        # 🔮 Get AI-generated response
+        response = get_ai_response(user_input, context)
+
+        # Save conversation
+        st.session_state["assistant_history"].append((user_input, response))
+
+# Display conversation
+if st.session_state["assistant_history"]:
+    st.subheader("Conversation History")
+    for q, a in st.session_state["assistant_history"]:
+        st.markdown(f"**You:** {q}")
+        st.markdown(f"**AI Assistant:** {a}")
+        st.markdown("---")
+
 
 import reportlab
 st.write()
