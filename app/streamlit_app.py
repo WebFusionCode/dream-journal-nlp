@@ -276,48 +276,50 @@ def run_analysis(df: pd.DataFrame):
             mime="application/pdf",
         )
 
-    # --- 💬 Dream AI Assistant ---
-# ===============================
-# 💬 Dream AI Assistant
-# ===============================
-import src.ai_assistant as assistant
+        # --- 💬 Dream AI Assistant ---
+    import src.ai_assistant as assistant  # ✅ make sure this file exists in src/
 
-st.markdown("---")
-st.header("💬 Dream AI Assistant")
-st.caption("Ask the AI to interpret your dreams, find patterns, or summarize insights.")
+    st.markdown("---")
+    st.header("💬 Dream AI Assistant")
+    st.caption("Ask the AI to interpret your dreams, find patterns, or summarize insights.")
 
-user_input = st.text_area(
-    "Ask something about your dreams:",
-    placeholder="e.g., What does it mean that I keep dreaming about water?"
-)
-context_depth = st.slider("Number of recent dreams to include in analysis:", 3, 20, 5)
+    # User input
+    user_input = st.text_area(
+        "Ask something about your dreams:",
+        placeholder="e.g., What does it mean that I keep dreaming about water?"
+    )
 
-# Initialize conversation state
-if "assistant_history" not in st.session_state:
-    st.session_state["assistant_history"] = []
+    # How many recent dreams to include in context
+    context_depth = st.slider("Number of recent dreams to include in analysis:", 3, 20, 5)
 
-# --- Only enable the button if data is available ---
-data_available = "df" in locals() and isinstance(df, pd.DataFrame) and not df.empty and "text" in df.columns
+    # Initialize assistant history in session state
+    if "assistant_history" not in st.session_state:
+        st.session_state["assistant_history"] = []
 
-if st.button("Ask Assistant", disabled=not data_available):
-    if not user_input.strip():
-        st.warning("Please enter a question before asking the AI.")
-    elif not data_available:
-        st.error("Please upload or enter some dream entries before asking the AI.")
-    else:
-        with st.spinner("The AI is analyzing your dreams..."):
-            # Create dream context safely
-            context = "\n\n".join(df.tail(context_depth)["text"].astype(str).tolist())
-            response = assistant.get_ai_response(user_input, context)
-            st.session_state["assistant_history"].append((user_input, response))
+    # Create the Ask Assistant button (enabled only when input exists)
+    ask_button = st.button("Ask Assistant", disabled=not bool(user_input.strip()))
 
-# --- Display chat history ---
-if st.session_state["assistant_history"]:
-    st.subheader("Conversation History")
-    for q, a in st.session_state["assistant_history"]:
-        st.markdown(f"**You:** {q}")
-        st.markdown(f"**AI Assistant:** {a}")
-        st.markdown("---")
+    if ask_button:
+        with st.spinner("✨ The AI is analyzing your dreams..."):
+            try:
+                # Use the most recent N dreams as context
+                if "text" not in df.columns:
+                    st.error("❌ The uploaded CSV must have a 'text' column.")
+                else:
+                    context = "\n\n".join(df["text"].astype(str).tail(context_depth).tolist())
+                    response = assistant.get_ai_response(user_input, context)
+                    st.session_state["assistant_history"].append((user_input, response))
+                    st.success("✅ Response generated successfully!")
+            except Exception as e:
+                st.error(f"⚠️ AI Assistant failed: {e}")
+
+    # Display the chat history
+    if st.session_state["assistant_history"]:
+        st.subheader("Conversation History")
+        for q, a in st.session_state["assistant_history"]:
+            st.markdown(f"**You:** {q}")
+            st.markdown(f"**AI Assistant:** {a}")
+            st.markdown("---")
 
 
 
