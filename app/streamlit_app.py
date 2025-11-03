@@ -327,6 +327,21 @@ def run_analysis(df: pd.DataFrame):
 import reportlab
 st.write()
 
+# --- FOOTER SECTION ---
+st.markdown("---")
+st.markdown(
+    """
+    <div style='text-align: center; padding: 15px 0; font-size: 15px; color: gray;'>
+        © 2025 <b>Dreams Psychology AI</b> — All Rights Reserved.<br>
+        Developed by <b>Web Fusion</b> | 
+        <a href="mailto:webwithfusion@gmail.com" style="color: #4b9be0; text-decoration: none;">
+            webwithfusion@gmail.com
+        </a>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 
 # --- Main Logic ---
 uploaded = st.file_uploader("Upload dream journal CSV", type=["csv"])
