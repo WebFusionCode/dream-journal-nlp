@@ -277,12 +277,14 @@ def run_analysis(df: pd.DataFrame):
         )
 
     # --- 💬 Dream AI Assistant ---
-   # --- 💬 Dream AI Assistant ---
-from src.ai_assistant import get_ai_response  # ✅ new improved assistant
+# ===============================
+# 💬 Dream AI Assistant
+# ===============================
+import src.ai_assistant as assistant
 
 st.markdown("---")
 st.header("💬 Dream AI Assistant")
-st.caption("Ask the AI to interpret your dreams, symbols, or emotions using GPT-4 intelligence.")
+st.caption("Ask the AI to interpret your dreams, find patterns, or summarize insights.")
 
 user_input = st.text_area(
     "Ask something about your dreams:",
@@ -290,28 +292,34 @@ user_input = st.text_area(
 )
 context_depth = st.slider("Number of recent dreams to include in analysis:", 3, 20, 5)
 
-# Keep chat memory
+# Initialize conversation state
 if "assistant_history" not in st.session_state:
     st.session_state["assistant_history"] = []
 
-if st.button("Ask Assistant") and user_input:
-    with st.spinner("The AI is analyzing your dreams..."):
-        # 🧠 Get context from the last few dream entries
-        context = "\n\n".join(df.tail(context_depth)["text"].tolist())
+# --- Only enable the button if data is available ---
+data_available = "df" in locals() and isinstance(df, pd.DataFrame) and not df.empty and "text" in df.columns
 
-        # 🔮 Get AI-generated response
-        response = get_ai_response(user_input, context)
+if st.button("Ask Assistant", disabled=not data_available):
+    if not user_input.strip():
+        st.warning("Please enter a question before asking the AI.")
+    elif not data_available:
+        st.error("Please upload or enter some dream entries before asking the AI.")
+    else:
+        with st.spinner("The AI is analyzing your dreams..."):
+            # Create dream context safely
+            context = "\n\n".join(df.tail(context_depth)["text"].astype(str).tolist())
+            response = assistant.get_ai_response(user_input, context)
+            st.session_state["assistant_history"].append((user_input, response))
 
-        # Save conversation
-        st.session_state["assistant_history"].append((user_input, response))
-
-# Display conversation
+# --- Display chat history ---
 if st.session_state["assistant_history"]:
     st.subheader("Conversation History")
     for q, a in st.session_state["assistant_history"]:
         st.markdown(f"**You:** {q}")
         st.markdown(f"**AI Assistant:** {a}")
         st.markdown("---")
+
+
 
 
 import reportlab
