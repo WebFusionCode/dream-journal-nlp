@@ -10,6 +10,11 @@ nltk.download('punkt', quiet=True)
 nltk.download('punkt_tab', quiet=True)
 nltk.download('stopwords', quiet=True)
 nltk.download('wordnet', quiet=True)
+import nltk
+
+# Ensure required NLTK data is available (especially on Streamlit Cloud)
+nltk.download("omw-1.4", quiet=True)
+
 
 # ✅ Ensure NLTK data is available (for Streamlit Cloud / servers)
 for pkg in ["stopwords", "punkt", "wordnet"]:

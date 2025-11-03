@@ -1,34 +1,30 @@
-# src/ai_assistant.py
-
-from openai import OpenAI
 import streamlit as st
+from openai import OpenAI
 
-# Initialize the OpenAI client (API key will come from Streamlit Secrets)
+# Initialize OpenAI client securely using Streamlit secrets
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-def get_ai_response(user_input: str) -> str:
-    """
-    Generate an AI response to user input using OpenAI's GPT model.
-    """
-
+def get_ai_response(prompt: str, context: str = "") -> str:
+    """Generate a natural AI response using GPT-4-mini."""
     try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",  # You can change to 'gpt-4-turbo' or 'gpt-3.5-turbo'
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are an insightful and empathetic AI dream interpreter. "
-                        "When users ask about their dreams or feelings, respond thoughtfully, "
-                        "mixing psychological insight with gentle curiosity. "
-                        "Avoid giving predictions or medical advice."
-                    ),
-                },
-                {"role": "user", "content": user_input},
-            ],
+        full_prompt = (
+            "You are a dream interpretation assistant. "
+            "You analyze dream patterns, emotions, and symbols in a psychological but empathetic way.\n\n"
+            f"Context from recent dreams:\n{context}\n\n"
+            f"User question: {prompt}\n\n"
+            "Provide a thoughtful and insightful interpretation."
         )
 
-        return response.choices[0].message.content
+        response = client.chat.completions.create(
+            model="gpt-4.1-mini",
+            messages=[
+                {"role": "system", "content": "You are an expert dream analyst and psychologist."},
+                {"role": "user", "content": full_prompt}
+            ],
+            temperature=0.8,
+        )
+
+        return response.choices[0].message.content.strip()
 
     except Exception as e:
-        return f"⚠️ Sorry, something went wrong: {str(e)}"
+        return f"⚠️ Error during AI analysis: {e}"
