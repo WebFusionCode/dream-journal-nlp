@@ -125,7 +125,7 @@ def run_analysis(df: pd.DataFrame):
     st.divider()
 
     # --- Topics ---
-    st.subheader("📂 Topics (LDA)")
+    st.subheader("📂 Topics")
     topics = topic_model(df_sent, n_topics=4, n_top_words=8)
     if topics:
         for t in topics:
